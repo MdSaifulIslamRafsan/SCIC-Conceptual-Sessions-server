@@ -2,7 +2,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { hashPassword } = require('./middleware');
+// const { hashPassword } = require('./middleware');
 require('dotenv').config();
 const app = express(); 
 const port = process.env.PORT || 5000;
@@ -33,7 +33,19 @@ async function run() {
     const userCollection = database.collection('users');
     const transactionCollection = database.collection('transaction');
 
- 
+    // authentication api
+ app.post('/register', async(req, res)=>{
+   try {
+    const data = req.body;
+    console.log(data);
+    
+   } catch (error) {
+    return res.json({
+      success: false,
+      error: error?.message
+    })
+   }
+ })
 
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
