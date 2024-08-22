@@ -2,8 +2,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { hashPassword } = require('./middelware');
-// const { hashPassword } = require('./middleware');
+const { hashPassword } = require('./middleware');
 require('dotenv').config();
 const app = express(); 
 const port = process.env.PORT || 5000;
@@ -24,7 +23,12 @@ const client = new MongoClient(uri, {
     deprecationErrors: true,
   }
 });
-
+// create token 
+const createToken = (user) =>{
+  const tokenData = {email: user?.email , role: user?.role}
+  var token = jwt.sign({ tokenData }, process.env.SECRET_TOKEN);
+  return token;
+}
 
 async function run() {
   try {
@@ -51,11 +55,13 @@ async function run() {
       })
     }
     
-    const result = await userCollection.insertOne(data)
+    const result = await userCollection.insertOne(data);
+    const token = createToken();
     return res.json({
       success: true,
       message: "user register successful",
-      data: result
+      data: result,
+      token
     })
     
    } catch (error) {
