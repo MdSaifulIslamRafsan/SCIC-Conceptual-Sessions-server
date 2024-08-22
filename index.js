@@ -2,6 +2,7 @@ const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const { hashPassword } = require('./middelware');
 // const { hashPassword } = require('./middleware');
 require('dotenv').config();
 const app = express(); 
@@ -34,10 +35,28 @@ async function run() {
     const transactionCollection = database.collection('transaction');
 
     // authentication api
- app.post('/register', async(req, res)=>{
+ app.post('/register', hashPassword, async(req, res)=>{
    try {
     const data = req.body;
-    console.log(data);
+    req.body.status = 'pending'
+    const email = req.body.email;
+    const phoneNumber = req.body.phoneNumber;
+    const isExistEmail = await userCollection.findOne({email: email})
+    const isPhoneEmail = await userCollection.findOne({phoneNumber: phoneNumber})
+    if (isExistEmail || isPhoneEmail) {
+      return res.json({
+        status: 400,
+        success: false,
+        error: 'This user already exist'
+      })
+    }
+    
+    const result = await userCollection.insertOne(data)
+    return res.json({
+      success: true,
+      message: "user register successful",
+      data: result
+    })
     
    } catch (error) {
     return res.json({
@@ -58,7 +77,7 @@ async function run() {
 run().catch(console.dir);
 
 
-app.get('/', (req, res) =>{
+app.get('/',  (req, res) =>{
     res.send("mobile banking server is running")
 })
 
