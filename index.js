@@ -1,5 +1,6 @@
 const { MongoClient, ServerApiVersion } = require('mongodb');
 const express = require('express');
+const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const { hashPassword } = require('./middleware');
@@ -26,10 +27,14 @@ const client = new MongoClient(uri, {
 // create token 
 const createToken = (user) =>{
   const tokenData = {email: user?.email , role: user?.role}
-  var token = jwt.sign({ tokenData }, process.env.SECRET_TOKEN);
+  var token = jwt.sign(tokenData, process.env.SECRET_TOKEN);
   return token;
 }
-
+const checkPassword = async(password , hash) => {
+  
+const isPasswordValid = await bcrypt.compare(password, hash);
+return isPasswordValid;
+} 
 async function run() {
   try {
     // Connect the client to the server	(optional starting in v4.7)
@@ -56,7 +61,7 @@ async function run() {
     }
     
     const result = await userCollection.insertOne(data);
-    const token = createToken();
+    const token = createToken(data);
     return res.json({
       success: true,
       message: "user register successful",
@@ -72,6 +77,44 @@ async function run() {
    }
  })
 
+ app.post("/login", async(req, res) => {
+  try {
+    const {phoneNumber , password} = req.body;
+    const userDetails = await userCollection.findOne({phoneNumber: phoneNumber})
+    const isCheckPassword = checkPassword(password , userDetails?.password);
+    if (!isCheckPassword) {
+      return res.json({
+        success: false,
+        status: 400,
+        error: "invalid credential"
+      })
+    }
+    if(!userDetails){
+      return res.json({
+        success: false,
+        status: 400,
+        error: "user not found"
+      })
+    }
+   
+   
+    const token = createToken(userDetails);
+    return res.json({
+      success: true,
+      message:"user login successful",
+      data: userDetails,
+      token
+    })
+
+  } catch (error) {
+    return res.json({
+      success: false,
+      error: error?.message
+    })
+  }
+    
+
+ })
     // Send a ping to confirm a successful connection
     await client.db("admin").command({ ping: 1 });
     console.log("Pinged your deployment. You successfully connected to MongoDB!");

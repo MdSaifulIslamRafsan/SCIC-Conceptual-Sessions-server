@@ -6,4 +6,6 @@ const {password} = req.body;
 
 next()
 }
+
+
 module.exports= {hashPassword}
