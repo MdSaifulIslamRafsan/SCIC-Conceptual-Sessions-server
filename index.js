@@ -3,7 +3,7 @@ const express = require('express');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-const { hashPassword } = require('./middleware');
+const { hashPassword, verifyToken } = require('./middleware');
 require('dotenv').config();
 const app = express(); 
 const port = process.env.PORT || 5000;
@@ -77,7 +77,7 @@ async function run() {
    }
  })
 
- app.post("/login", async(req, res) => {
+ app.post("/login",  async(req, res) => {
   try {
     const {phoneNumber , password} = req.body;
     const userDetails = await userCollection.findOne({phoneNumber: phoneNumber})
@@ -116,7 +116,7 @@ async function run() {
 
  });
 
- app.get('/me', async(req, res) =>{
+ app.get('/me',  async(req, res) =>{
 
  });
     // Send a ping to confirm a successful connection
